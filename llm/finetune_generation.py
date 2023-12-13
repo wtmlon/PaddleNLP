@@ -128,22 +128,61 @@ def main():
             quantization_config=quantization_config,
         )
     else:
-        model_config = AutoConfig.from_pretrained(
-            model_args.model_name_or_path,
-            tensor_parallel_output=False,
-            tensor_parallel_degree=training_args.tensor_parallel_degree,
-            tensor_parallel_rank=training_args.tensor_parallel_rank,
-            dtype=dtype,
-            from_aistudio=model_args.from_aistudio,
-            quantization_config=quantization_config,
-        )
-        if hasattr(model_config, "use_flash_attention"):
-            model_config.use_flash_attention = model_args.use_flash_attention
-        model = AutoModelForCausalLM.from_pretrained(
-            model_args.model_name_or_path,
-            config=model_config,
-            from_aistudio=model_args.from_aistudio,
-        )
+        if not model_args.sibling_model:
+            model_config = AutoConfig.from_pretrained(
+                model_args.model_name_or_path,
+                tensor_parallel_output=False,
+                tensor_parallel_degree=training_args.tensor_parallel_degree,
+                tensor_parallel_rank=training_args.tensor_parallel_rank,
+                dtype=dtype,
+                from_aistudio=model_args.from_aistudio,
+                quantization_config=quantization_config,
+            )
+            if hasattr(model_config, "use_flash_attention"):
+                model_config.use_flash_attention = model_args.use_flash_attention
+            model = AutoModelForCausalLM.from_pretrained(
+                model_args.model_name_or_path,
+                config=model_config,
+                from_aistudio=model_args.from_aistudio,
+            )
+        else:
+            from paddlenlp.transformers.llama.sibling_modeling import SiblingLlama
+            model_config = AutoConfig.from_pretrained(
+                model_args.model_name_or_path,
+                dtype=dtype,
+            )
+            model1 = AutoModelForCausalLM.from_pretrained(
+                model_args.model_name_or_path,
+                config=model_config,
+            )
+            target_modules = get_lora_target_modules(model1)
+            lora_config1 = LoRAConfig(
+                target_modules=target_modules,
+                r=8,
+                lora_alpha=2 *8,
+                merge_weights=False,
+                dtype=dtype,
+            )
+            model1 = LoRAModel(model1, lora_config1)
+            print("============================= Model 1 =============================")
+            model1.mark_only_lora_as_trainable()
+            model1.print_trainable_parameters()
+            model2 = AutoModelForCausalLM.from_pretrained(
+                model_args.model_name_or_path,
+                config=model_config,
+            )
+            lora_config2 = LoRAConfig(
+                target_modules=target_modules,
+                r=128,
+                lora_alpha=2 * 128,
+                merge_weights=False,
+                dtype=dtype,
+            )
+            model2 = LoRAModel(model2, lora_config2)
+            print("============================= Model 2 =============================")
+            model2.mark_only_lora_as_trainable()
+            model2.print_trainable_parameters()
+            model = SiblingLlama(model1, model2)
     if training_args.do_train and model_args.neftune:
         # Inspired by https://github.com/neelsjain/NEFTune
         if hasattr(model, "get_input_embeddings"):
