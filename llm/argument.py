@@ -80,6 +80,7 @@ class ModelArgument:
 
     # LoRA related parameters
     lora: bool = field(default=False, metadata={"help": "Whether to use LoRA technique"})
+    sibling_model: bool = field(default=False, metadata={"help": "Whether to use LoRA technique"})
     lora_path: str = field(default=None, metadata={"help": "Initialize lora state dict."})
     lora_rank: int = field(default=8, metadata={"help": "Lora attention dimension"})
 
