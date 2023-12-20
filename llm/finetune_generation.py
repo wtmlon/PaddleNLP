@@ -148,11 +148,12 @@ def main():
         else:
             from paddlenlp.transformers.llama.sibling_modeling import SiblingLlama
             model_config = AutoConfig.from_pretrained(
-                model_args.model_name_or_path,
+                #model_args.model_name_or_path,
+                "facebook/llama-13b",
                 dtype=dtype,
             )
             model1 = AutoModelForCausalLM.from_pretrained(
-                model_args.model_name_or_path,
+                "facebook/llama-13b",
                 config=model_config,
             )
             target_modules = get_lora_target_modules(model1)
@@ -167,14 +168,18 @@ def main():
             print("============================= Model 1 =============================")
             model1.mark_only_lora_as_trainable()
             model1.print_trainable_parameters()
+            model_config = AutoConfig.from_pretrained(
+                model_args.model_name_or_path,
+                dtype=dtype,
+            )
             model2 = AutoModelForCausalLM.from_pretrained(
                 model_args.model_name_or_path,
                 config=model_config,
             )
             lora_config2 = LoRAConfig(
                 target_modules=target_modules,
-                r=128,
-                lora_alpha=2 * 128,
+                r=8,
+                lora_alpha=2 * 8,
                 merge_weights=False,
                 dtype=dtype,
             )
