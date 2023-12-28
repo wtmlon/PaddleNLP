@@ -462,6 +462,15 @@ class LoRAModel(nn.Layer):
     def mark_only_lora_as_trainable(self) -> None:
         for _, layer in self.model.named_sublayers():
             if (
+                self.lora_config.train_embed_norm and (
+                isinstance(layer, nn.Embedding)
+                or "rms" in layer.__dict__['_full_name'].lower())
+            ):
+                print(f"let {layer.__dict__['_full_name']} trainable")
+                for name, weight in layer.state_dict().items():
+                    weight.stop_gradient = False
+
+            elif (
                 isinstance(layer, LoRALinear)
                 or isinstance(layer, ColumnParallelLoRALinear)
                 or isinstance(layer, RowParallelLoRALinear)

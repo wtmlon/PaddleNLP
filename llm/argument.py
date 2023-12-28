@@ -19,6 +19,9 @@ from paddlenlp.trainer import TrainingArguments
 @dataclass
 class TrainingArguments(TrainingArguments):
     benchmark: bool = field(default=False, metadata={"help": "Whether runs benchmark"})
+    train_embed_norm: bool = field(
+        default=False, metadata={"help": "Whether to train the embedding and norm layers parameters."}
+    )
 
 
 @dataclass
@@ -83,6 +86,7 @@ class ModelArgument:
     sibling_model: bool = field(default=False, metadata={"help": "Whether to use LoRA technique"})
     lora_path: str = field(default=None, metadata={"help": "Initialize lora state dict."})
     lora_rank: int = field(default=8, metadata={"help": "Lora attention dimension"})
+    lora_alpha: int = field(default=-1, metadata={"help": "Lora attention dimension"})
 
     # prefix tuning related parameters
     prefix_tuning: bool = field(default=False, metadata={"help": "Whether to use Prefix technique"})

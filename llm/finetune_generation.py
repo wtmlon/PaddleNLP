@@ -436,9 +436,10 @@ def main():
             lora_config = LoRAConfig(
                 target_modules=target_modules,
                 r=model_args.lora_rank,
-                lora_alpha=2 * model_args.lora_rank,
+                lora_alpha=model_args.lora_alpha,
                 merge_weights=False,
                 tensor_parallel_degree=training_args.tensor_parallel_degree,
+                train_embed_norm=training_args.train_embed_norm,
                 dtype=dtype,
             )
             model = LoRAModel(model, lora_config)

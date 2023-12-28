@@ -54,6 +54,9 @@ class LoRAConfig:
     merge_weights: bool = field(
         default=False, metadata={"help": "Merge weights of the original model and the Lora model"}
     )
+    train_embed_norm: bool = field(
+        default=False, metadata={"help": "Whether to train the embedding and norm layers parameters."}
+    )
     trainable_bias: Optional[str] = field(
         default=None, metadata={"help": "Define trainable bias parameters for the Lora model."}
     )

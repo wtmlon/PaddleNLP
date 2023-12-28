@@ -64,7 +64,12 @@ class LoRALinear(nn.Linear):
             is_bias=False,
             default_initializer=nn.initializer.Constant(value=0.0),
         )
-        self.scaling = self.lora_alpha / self.r
+        if lora_alpha == -1:
+            #self.scaling = self.lora_alpha / self.r
+            self.scaling = 1
+        else:
+            print(f"set scaling to {4 / math.sqrt(self.r)}!!!!!!!!!!!")
+            self.scaling = 4 / math.sqrt(self.r)
 
         # Freezing the pre-trained weight matrix
         self.weight.stop_gradient = True
