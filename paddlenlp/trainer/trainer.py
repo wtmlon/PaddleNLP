@@ -970,6 +970,7 @@ class Trainer:
         if self.args.ignore_data_skip:
             self.timers and self.timers("read-data").start()
 
+        token_num = 0
         for epoch in range(epochs_trained, num_train_epochs):
             if isinstance(train_dataloader, paddle.io.DataLoader) and isinstance(
                 train_dataloader.batch_sampler, DistributedBatchSampler
@@ -1040,6 +1041,7 @@ class Trainer:
                 if dp_master_grad:
                     is_no_sync = True
 
+                token_num += inputs["input_ids"].shape[0] * inputs["input_ids"].shape[1]
                 if is_no_sync:
                     # Avoid unnecessary DDP synchronization since there will be no backward pass on this example.
                     with model.no_sync():
@@ -1240,6 +1242,7 @@ class Trainer:
         metrics = speed_metrics("train", start_time, num_samples=num_train_samples, num_steps=self.state.max_steps)
 
         metrics["train_loss"] = train_loss
+        metrics["token_num"] = token_num
 
         self.is_in_train = False
 

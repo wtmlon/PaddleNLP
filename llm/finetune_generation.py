@@ -17,6 +17,8 @@ import sys
 from dataclasses import dataclass, field
 from functools import partial
 from typing import Optional
+import paddle.distributed as dist
+from paddle.distributed import fleet
 
 import paddle
 from argument import (
@@ -562,11 +564,27 @@ def main():
         if model_args.neftune:
             neft_post_hook_handle.remove()
         if training_args.benchmark:
+
             total_effective_tokens = (
                 sum([len(i["input_ids"]) for i in trainer.train_dataset]) * training_args.num_train_epochs
             )
+            tensor_token_num = paddle.to_tensor(train_result.metrics["token_num"])
+            print(tensor_token_num)
+            _hcg = fleet.get_hybrid_communicate_group()
+            if _hcg is not None:
+                _sd_group = _hcg.get_sharding_parallel_group()
+                _dp_group = _hcg.get_data_parallel_group()
+                if _sd_group is not None:
+                    dist.all_reduce(tensor_token_num, group=_sd_group)
+                elif _dp_group is not None:
+                    dist.all_reduce(tensor_token_num, group=_dp_group)
+            print(tensor_token_num)
             effective_tokens_per_second = total_effective_tokens / train_result.metrics["train_runtime"]
+            print("111", total_effective_tokens)
+            print("222", tensor_token_num)
+            tokens_per_second = tensor_token_num.item() / (train_result.metrics["train_runtime"] * training_args.num_train_epochs)
             logger.info(f"Effective_Tokens_per_second: {effective_tokens_per_second} ")
+            logger.info(f"Tokens_per_second: {tokens_per_second} ")
             logger.info("Benchmark done.")
         else:
             if model_args.save_to_aistudio:
