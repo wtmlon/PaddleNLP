@@ -46,4 +46,15 @@ def calculate_effective_tokens(training_args, train_dataset, max_seq_len):
         total_tokens = (i + 1) * max_seq_len
         total_effective_tokens *= training_args.num_train_epochs
         total_tokens *= training_args.num_train_epochs
+        print("total_tokens", total_tokens)
+        print("total_tokens", i)
+        print("max_seq_len", max_seq_len)
+        #max_sample = (i + 1) #376
+        #sample_per_step = (
+        #    training_args.per_device_train_batch_size
+        #    * training_args.gradient_accumulation_steps
+        #    * sharding_parallel_degree
+        #    * data_parallel_degree
+        #) # 64
+        #steps_num = max_sample_per_step // sample_per_step
     return total_effective_tokens, total_tokens

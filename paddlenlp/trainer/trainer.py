@@ -748,7 +748,7 @@ class Trainer:
         len_dataloader = None
         if has_length(train_dataloader):
             len_dataloader = len(train_dataloader)
-            num_update_steps_per_epoch = len(train_dataloader) // args.gradient_accumulation_steps
+            num_update_steps_per_epoch = (len(train_dataloader) - 1) // args.gradient_accumulation_steps + 1
             num_update_steps_per_epoch = max(num_update_steps_per_epoch, 1)
             num_examples = len(self.train_dataset)
 
@@ -980,6 +980,7 @@ class Trainer:
             step_control = 0  # used in loop control, reset to 0 after every step
             self.control = self.callback_handler.on_epoch_begin(args, self.state, self.control)
 
+            print("xxxxxxxxxx ", len(epoch_iterator))
             for step, inputs in enumerate(epoch_iterator):
                 if self.args.use_hybrid_parallel and self.args.sep_parallel_degree > 1:
                     inputs = split_inputs_sequence_dim(inputs)
@@ -1059,11 +1060,16 @@ class Trainer:
                         logger.warning("found `no sync` param when `use_expert_parallel=False`")
                     fused_allreduce_gradients(nonmoe_list, hcg)
 
+                print(steps_in_epoch)
+                print(step_control)
+                print(step)
+                print("=========================")
                 if (step_control + 1) % args.gradient_accumulation_steps == 0 or (
                     # last step in epoch but step is always smaller than gradient_accumulation_steps
-                    steps_in_epoch <= args.gradient_accumulation_steps
+                    step_control <= args.gradient_accumulation_steps
                     and (step + 1) == steps_in_epoch
                 ):
+                    print("inside!!!")
                     if self.args.pipeline_parallel_degree <= 1 and self._enable_delay_scale_loss():
                         tr_loss /= self.args.gradient_accumulation_steps
 
@@ -1147,6 +1153,7 @@ class Trainer:
                     elif isinstance(self.optimizer, HybridParallelOptimizer):
                         self.optimizer._step(parameters_list)
                     else:
+                        print("update!!")
                         self.optimizer.step()
 
                     self.timers and self.timers("optimizer-step").stop()

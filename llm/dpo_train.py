@@ -170,6 +170,7 @@ def main():
     else:
         eval_ds = None
     logger.info("Creating dataset successfully ...")
+    print(len(train_ds))
 
     trainer = DPOTrainer(
         model=model,

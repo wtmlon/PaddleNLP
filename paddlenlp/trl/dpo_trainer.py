@@ -206,6 +206,8 @@ class DPOTrainer(Trainer):
                         ref_logits,
                         average_log_prob=self.args.dpo_loss_type == "ipo",
                     )
+            with open('./tmp.txt', 'a') as f:
+                f.write(str(dpo_inputs["input_ids"].shape[0] * dpo_inputs["input_ids"].shape[1]) + '\n')
             policy_logits = model(**dpo_inputs)[0]
             policy_chosen_logps, policy_rejected_logps = self.get_batch_logps(
                 batch,

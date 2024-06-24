@@ -43,6 +43,17 @@ class TrainingArguments(TrainingArguments):
             self.save_strategy = IntervalStrategy.NO
             self.evaluation_strategy = IntervalStrategy.NO
 
+        if self.benchmark:
+            self.do_train = True
+            self.do_export = False
+            self.do_predict = False
+            self.do_eval = False
+            self.overwrite_output_dir = True
+            self.load_best_model_at_end = False
+            self.report_to = []
+            self.save_strategy = IntervalStrategy.NO
+            self.evaluation_strategy = IntervalStrategy.NO
+
 
 @dataclass
 class DataArgument:
